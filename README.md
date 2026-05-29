@@ -6,7 +6,7 @@ El sistema está diseñado bajo estándares de alta disponibilidad y mantenibili
 
 ---
 
-## 🏗️ Arquitectura y Flujo de Datos
+## Arquitectura y Flujo de Datos
 
 El sistema sigue un flujo desacoplado donde la interfaz de usuario de chat nunca se comunica directamente con la lógica de negocio interna ni con los modelos core de lenguaje:
 
@@ -34,3 +34,31 @@ El sistema sigue un flujo desacoplado donde la interfaz de usuario de chat nunca
                                |  (Servicio de Modelos)  | | (Procesamiento)  |
                                |       Port 7004         | |    Port 7009     |
                                +-------------------------+ +------------------+
+
+El código se organiza en módulos desacoplados para facilitar la escalabilidad horizontal y el mantenimiento del sistema:
+
+llm-chatbot-integration/
+├── src/
+│   ├── config/
+│   │   └── environment.js          # Centralización de variables de entorno y prompts genéricos
+│   ├── infrastructure/
+│   │   └── database/
+│   │       └── mongoClient.js      # Conector encapsulado de MongoDB y GridFS (SRP)
+│   ├── interfaces/
+│   │   └── http/
+│   │       ├── controllers/
+│   │       │   ├── chatController.js       # Lógica del proxy /v1/chat/completions 
+│   │       │   └── templateController.js   # Gestión de marcado, borrado físico y webhook a FGS
+│   │       └── routes/
+│   │           └── apiRoutes.js            # Enrutador y middleware de Express
+│   └── shared/
+│       └── utils/
+│           └── textNormalizer.js   # Funciones puras de extracción de texto y hashing SHA-256
+├── .env.example                    # Plantilla pública para variables de entorno seguro
+├── .gitignore                      # Exclusiones estrictas para evitar fugas de credenciales
+├── package.json                    # Manifiesto y dependencias de Node.js
+└── server.js                       # Inicialización limpia y punto de entrada de la aplicación
+
+
+
+
