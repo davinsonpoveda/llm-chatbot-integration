@@ -1,24 +1,21 @@
 # LLM Chatbot Integration Bridge
 
-LLM Chatbot Integration Bridge es una solución de backend modular desarrollada en Node.js que actúa como un **API Gateway e intermediario de comunicación (Proxy/Bridge Pattern)** entre interfaces conversacionales avanzadas (como OpenWebUI) y un ecosistema distribuido de microservicios propietarios de Inteligencia Artificial.
+LLM Chatbot Integration Bridge es una solución de backend modular desarrollada en Node.js que actúa como un **API Gateway e intermediario de comunicación (Proxy/Bridge Pattern)** entre interfaces de chat y servicios de LLM.
 
-El sistema está diseñado bajo estándares de alta disponibilidad y mantenibilidad, implementando aislamiento conceptual de servicios, persistencia no relacional mediante MongoDB y optimización de almacenamiento mediante GridFS para flujos de datos binarios y mapeo de interacciones.
+El sistema está diseñado bajo estándares de alta disponibilidad y mantenibilidad, implementando aislamiento conceptual de servicios, persistencia no relacional mediante MongoDB y optimización de rendimiento.
 
 ---
 
-## Arquitectura y Flujo de Datos
+## 🏗️ Arquitectura y Flujo de Datos
 
-El sistema sigue un flujo desacoplado donde la interfaz de usuario de chat nunca se comunica directamente con la lógica de negocio interna ni con los modelos core de lenguaje:
+El sistema sigue un flujo estrictamente desacoplado donde la interfaz de usuario de chat nunca se comunica directamente con la lógica de negocio interna ni con los modelos core de lenguaje.
 
-Arquitectura y Flujo de Datos
-
-El sistema sigue un flujo estrictamente desacoplado donde la interfaz de usuario de chat nunca se comunica directamente con la lógica de negocio interna ni con los modelos core de lenguaje. La seguridad perimetral se gestiona mediante un proxy inverso que unifica la entrada al ecosistema.
-
-       [ Cliente / Navegador ]
-                  |
-                  | HTTP Peticiones Externas (Port 8080)
-                  v
-       [ Proxy Inverso: NGINX ]
+```
+        [ Cliente / Navegador ]
+                   |
+                   | HTTP Peticiones Externas (Port 8080)
+                   v
+        [ Proxy Inverso: NGINX ]
 +------------------------------------------+
 |  - Enrutamiento unificado de tráfico     |
 |  - Ofuscación de puertos internos        |
@@ -39,10 +36,15 @@ El sistema sigue un flujo estrictamente desacoplado donde la interfaz de usuario
                     |    Core Inference Svc   | | Document Gen Svc |
                     |  (Inferencia Port 5010) | |  (FGS Svc Port 5020)
                     +-------------------------+ +------------------+
-Estructura Completa del Proyecto:
+```
+
+---
+
+## 📁 Estructura del Proyecto
 
 El código se organiza en módulos desacoplados para facilitar la escalabilidad horizontal y el mantenimiento del sistema:
 
+```
 llm-chatbot-integration/
 ├── infra/
 │   └── nginx/
@@ -67,9 +69,31 @@ llm-chatbot-integration/
 ├── .gitignore                      # Exclusiones estrictas para evitar fugas de credenciales
 ├── package.json                    # Manifiesto y dependencias de Node.js
 └── server.js                       # Inicialización limpia y punto de entrada de la aplicación
+```
 
+---
 
+## 🚀 Características Principales
 
+- **API Gateway modular**: Actúa como punto centralizado de acceso a servicios
+- **Patrón Proxy/Bridge**: Desacoplamiento total entre cliente y servicios internos
+- **Persistencia MongoDB**: Almacenamiento no relacional con GridFS para documentos
+- **Seguridad**: Ofuscación de puertos internos mediante NGINX
+- **Escalabilidad horizontal**: Arquitectura modular y servicios independientes
+- **Alta disponibilidad**: Diseño robusto y tolerante a fallos
 
+---
 
+## 🛠️ Tecnologías
 
+- **Node.js**: Runtime de JavaScript
+- **Express.js**: Framework web
+- **MongoDB**: Base de datos NoSQL
+- **NGINX**: Proxy inverso
+- **Docker**: Containerización
+
+---
+
+## 📝 Licencia
+
+Este proyecto está bajo licencia MIT.
