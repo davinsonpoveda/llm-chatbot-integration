@@ -10,34 +10,43 @@ El sistema está diseñado bajo estándares de alta disponibilidad y mantenibili
 
 El sistema sigue un flujo desacoplado donde la interfaz de usuario de chat nunca se comunica directamente con la lógica de negocio interna ni con los modelos core de lenguaje:
 
-```text
-       [ Interfaz Conversacional ]
-            +----------------+
-            |   OpenWebUI    | (Client / Frontend)
-            +-------+--------+
-                    |
-                    | 1. HTTP POST /v1/chat/completions (Estándar OpenAI API)
-                    v
-       [ Capa de Integración / Proxy ]
+Arquitectura y Flujo de Datos
+
+El sistema sigue un flujo estrictamente desacoplado donde la interfaz de usuario de chat nunca se comunica directamente con la lógica de negocio interna ni con los modelos core de lenguaje. La seguridad perimetral se gestiona mediante un proxy inverso que unifica la entrada al ecosistema.
+
+       [ Cliente / Navegador ]
+                  |
+                  | HTTP Peticiones Externas (Port 8080)
+                  v
+       [ Proxy Inverso: NGINX ]
 +------------------------------------------+
-|         llm-chatbot-integration          | <---> [ MongoDB / GridFS ]
-|  - Middleware de Normalización de Texto  |       (Mapeos de interacción y logs)
-|  - Orquestador del Pipeline de Inferencia|
-+-------------------+----------------------+
-                    |
-                    | 2. Peticiones HTTP internas (Seguridad SSL gestionada)
-                    +-----------------------+-----------------------+
-                                            |                       |
-                                            v                       v
-                               +------------+------------+ +--------+---------+
-                               |    Core Inference Svc   | | Document Gen Svc |
-                               |  (Servicio de Modelos)  | | (Procesamiento)  |
-                               |       Port 7004         | |    Port 7009     |
-                               +-------------------------+ +------------------+
+|  - Enrutamiento unificado de tráfico     |
+|  - Ofuscación de puertos internos        |
++--------+------------------------+--------+
+         |                        |
+         | /v1 o /api             | / (Tráfico Web)
+         v                        v
++--------+---------------+ +-------+--------+
+| llm-chatbot-integration | |   OpenWebUI    |
+|   Gateway (Port 3050)   | | (Port 8080/int)|
++--------+---------------+ +----------------+
+         |
+         | Peticiones HTTP de Red Interna (Docker network)
+         +-----------------------+-----------------------+
+                                 |                       |
+                                 v                       v
+                    +------------+------------+ +--------+---------+
+                    |    Core Inference Svc   | | Document Gen Svc |
+                    |  (Inferencia Port 5010) | |  (FGS Svc Port 5020)
+                    +-------------------------+ +------------------+
+Estructura Completa del Proyecto:
 
 El código se organiza en módulos desacoplados para facilitar la escalabilidad horizontal y el mantenimiento del sistema:
 
 llm-chatbot-integration/
+├── infra/
+│   └── nginx/
+│       └── nginx.conf              # Configuración segura y genérica del Proxy Inverso
 ├── src/
 │   ├── config/
 │   │   └── environment.js          # Centralización de variables de entorno y prompts genéricos
@@ -47,8 +56,8 @@ llm-chatbot-integration/
 │   ├── interfaces/
 │   │   └── http/
 │   │       ├── controllers/
-│   │       │   ├── chatController.js       # Lógica del proxy /v1/chat/completions 
-│   │       │   └── templateController.js   # Gestión de marcado, borrado físico y webhook a FGS
+│   │       │   ├── chatController.js       # Lógica del proxy /v1/chat/completions (Fase 1 y 2)
+│   │       │   └── templateController.js   # Gestión de marcado, borrado físico y webhook
 │   │       └── routes/
 │   │           └── apiRoutes.js            # Enrutador y middleware de Express
 │   └── shared/
@@ -58,6 +67,8 @@ llm-chatbot-integration/
 ├── .gitignore                      # Exclusiones estrictas para evitar fugas de credenciales
 ├── package.json                    # Manifiesto y dependencias de Node.js
 └── server.js                       # Inicialización limpia y punto de entrada de la aplicación
+
+
 
 
 
